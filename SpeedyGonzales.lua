@@ -71,15 +71,14 @@ local dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(..., {
 local addon = CreateFrame("Frame", "SpeedyGonzalesFrame", UIParent)
 addon:SetMovable(true)
 addon:SetToplevel(true)
-addon:SetHeight(32)
 addon:SetBackdrop({
 	bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
 	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
-	edgeSize = 12,
+	edgeSize = 14,
 	insets = {left = 3, right = 3, top = 3, bottom = 3}
 })
 addon:SetBackdropColor(0, 0, 0, 0.8)
-addon:SetBackdropBorderColor(0.5, 0.5, 0.5)
+addon:SetBackdropBorderColor(0.3, 0.3, 0.3)
 addon:RegisterEvent("ADDON_LOADED")
 addon:RegisterEvent("PLAYER_ENTERING_WORLD")
 addon:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
@@ -131,10 +130,10 @@ do
 end
 
 -- create font string for the actual speed text
-local addonText = addon:CreateFontString()
-addonText:SetPoint("CENTER", addon)
-addonText:SetFontObject(GameFontHighlight)
-addon.text = addonText
+addon.text = addon:CreateFontString()
+addon.text:SetPoint("CENTER", addon)
+addon.text:SetFontObject("GameFontHighlight")
+addon.text:SetSpacing(2)
 
 local optionsFrame = CreateFrame("Frame")
 optionsFrame.name = "SpeedyGonzales"
@@ -230,6 +229,7 @@ dropdown.initialize = function(self)
 		info.text = unitNames[v]
 		info.func = onClick
 		info.arg1 = v
+		info.checked = (v == db.units)
 		UIDropDownMenu_AddButton(info)
 	end
 end
@@ -329,7 +329,7 @@ end
 -- resize frame so the pitch display fits
 function addon:SetPitchDisplay()
 	if db.pitch then
-		self:SetHeight(48)
+		self:SetHeight(50)
 	else
 		self:SetHeight(32)
 	end
