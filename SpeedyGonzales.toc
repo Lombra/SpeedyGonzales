@@ -1,0 +1,12 @@
+## Interface: 60000
+## Title: SpeedyGonzales
+## Version: @project-version@
+## Notes: Displays your current movement speed and pitch.
+## Author: Lombra
+## SavedVariablesPerCharacter: SpeedyGonzalesDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+
+SpeedyGonzales.lua
