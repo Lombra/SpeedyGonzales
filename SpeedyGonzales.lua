@@ -1,7 +1,5 @@
 local floor = math.floor
-local deg = math.deg
 local GetUnitSpeed = GetUnitSpeed
-local GetUnitPitch = GetUnitPitch
 local IsFlying = IsFlying
 local IsSwimming = IsSwimming
 local IsFalling = IsFalling
@@ -69,6 +67,7 @@ local dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(..., {
 
 -- create the speed-o-meter frame
 local addon = CreateFrame("Frame", "SpeedyGonzalesFrame", UIParent)
+addon:SetHeight(32)
 addon:SetMovable(true)
 addon:SetToplevel(true)
 addon:SetBackdrop({
@@ -93,15 +92,14 @@ addon:SetScript("OnHide", function(self) self:OnMouseUp() end)
 do
 	local frame = CreateFrame("Frame")
 	frame:SetScript("OnUpdate", function(self)
-		local flying = IsFlying()
-		local swimming = IsSwimming()
-		local floating = flying or swimming
-		local pitch = db.pitch and deg(GetUnitPitch(speeder))
+		local speed
 		if db.showTopSpeed then
+			local flying = IsFlying()
+			local swimming = IsSwimming()
 			local _, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed(speeder)
 			
 			-- Determine whether to display running, flying, or swimming speed
-			local speed = runSpeed
+			speed = runSpeed
 			if swimming then
 				speed = swimSpeed
 			elseif flying then
@@ -118,14 +116,11 @@ do
 			end
 			
 			speed = transform(speed)
-			
-			addon.text:SetFormattedText(("%d%s"..(pitch and (floating and "\n%.1f \194\176" or "\n-") or "")), speed, unit, pitch)
-			dataobj.text = format(("%d%s"..(pitch and floating and " %.1f \194\176" or "")), speed, unit, pitch)
 		else
-			local speed = transform(GetUnitSpeed(speeder))
-			addon.text:SetFormattedText(("%d%s"..(pitch and (floating and "\n%.1f \194\176" or "\n-") or "")), speed, unit, pitch)
-			dataobj.text = format(("%d%s"..(pitch and floating and " %.1f \194\176" or "")), speed, unit, pitch)
+			speed = transform(GetUnitSpeed(speeder))
 		end
+		addon.text:SetFormattedText("%d%s", speed, unit)
+		dataobj.text = format("%d%s", speed, unit)
 	end)
 end
 
@@ -167,11 +162,6 @@ local options = {
 		text = "Lock",
 		setting = "locked",
 		func = "SetLock",
-	},
-	{
-		text = "Pitch display",
-		setting = "pitch",
-		func = "SetPitchDisplay",
 	},
 	{
 		text = "Show top speed",
@@ -254,7 +244,6 @@ local defaults = {
 	units = "percent",
 	shown = true,
 	locked = false,
-	pitch = false,
 	showTopSpeed = false,
 	pos = {
 		point = "CENTER",
@@ -324,15 +313,6 @@ end
 
 function addon:SetLock()
 	self:EnableMouse(not db.locked)
-end
-
--- resize frame so the pitch display fits
-function addon:SetPitchDisplay()
-	if db.pitch then
-		self:SetHeight(50)
-	else
-		self:SetHeight(32)
-	end
 end
 
 -- set width depending on displayed unit type
