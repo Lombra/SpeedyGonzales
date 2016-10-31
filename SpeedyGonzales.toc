@@ -1,7 +1,7 @@
 ## Interface: 70100
 ## Title: SpeedyGonzales
 ## Version: @project-version@
-## Notes: Displays your current movement speed and pitch.
+## Notes: Displays your current movement speed.
 ## Author: Lombra
 ## SavedVariablesPerCharacter: SpeedyGonzalesDB
 
