@@ -144,7 +144,7 @@ optionsFrame.title = title
 
 local function onClick(self)
 	local checked = self:GetChecked()
-	PlaySound(checked and "igMainMenuOptionCheckBoxOn" or "igMainMenuOptionCheckBoxOff")
+	PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
 	db[self.setting] = checked
 	if self.func then
 		addon[self.func](addon)
