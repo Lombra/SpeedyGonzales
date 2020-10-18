@@ -66,7 +66,7 @@ local dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(..., {
 })
 
 -- create the speed-o-meter frame
-local addon = CreateFrame("Frame", "SpeedyGonzalesFrame", UIParent)
+local addon = CreateFrame("Frame", "SpeedyGonzalesFrame", UIParent, "BackdropTemplate")
 addon:SetHeight(32)
 addon:SetMovable(true)
 addon:SetToplevel(true)
