@@ -117,7 +117,8 @@ do
 			
 			speed = transform(speed)
 		else
-			speed = transform(GetUnitSpeed(speeder))
+			local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+			speed = transform(isGliding and forwardSpeed or GetUnitSpeed(speeder))
 		end
 		addon.text:SetFormattedText("%d%s", speed, unit)
 		dataobj.text = format("%d%s", speed, unit)
