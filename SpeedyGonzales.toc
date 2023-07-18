@@ -1,4 +1,4 @@
-## Interface: 90001
+## Interface: 100105
 ## Title: SpeedyGonzales
 ## Version: @project-version@
 ## Notes: Displays your current movement speed.
