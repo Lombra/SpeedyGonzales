@@ -3,5 +3,6 @@ package-as: SpeedyGonzales
 enable-nolib-creation: no
 
 externals:
-    Libs/LibStub: https://repos.wowace.com/wow/ace3/trunk/LibStub
-    Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/ace3/trunk/CallbackHandler-1.0
+  Libs/CallbackHandler-1.0: https://repos.wowace.com/wow/ace3/trunk/CallbackHandler-1.0
+  Libs/LibDataBroker-1.1: https://repos.wowace.com/wow/libdatabroker-1-1
+  Libs/LibStub: https://repos.wowace.com/wow/ace3/trunk/LibStub
