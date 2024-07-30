@@ -97,7 +97,7 @@ do
 			local flying = IsFlying()
 			local swimming = IsSwimming()
 			local _, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed(speeder)
-			
+
 			-- Determine whether to display running, flying, or swimming speed
 			speed = runSpeed
 			if swimming then
@@ -105,7 +105,7 @@ do
 			elseif flying then
 				speed = flightSpeed
 			end
-			
+
 			-- Hack so that your speed doesn't appear to change when jumping out of the water
 			if IsFalling() then
 				if self.wasSwimming then
@@ -114,7 +114,7 @@ do
 			else
 				self.wasSwimming = swimming
 			end
-			
+
 			speed = transform(speed)
 		else
 			local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
@@ -132,15 +132,15 @@ addon.text:SetFontObject("GameFontHighlight")
 addon.text:SetSpacing(2)
 
 local optionsFrame = CreateFrame("Frame")
-optionsFrame.name = "SpeedyGonzales"
-InterfaceOptions_AddCategory(optionsFrame)
+local category = Settings.RegisterCanvasLayoutCategory(optionsFrame, "SpeedyGonzales")
+Settings.RegisterAddOnCategory(category)
 
 local title = optionsFrame:CreateFontString(nil, nil, "GameFontNormalLarge")
 title:SetPoint("TOPLEFT", 16, -16)
 title:SetPoint("RIGHT", -16, 0)
 title:SetJustifyH("LEFT")
 title:SetJustifyV("TOP")
-title:SetText(optionsFrame.name)
+title:SetText(category.name)
 optionsFrame.title = title
 
 local function onClick(self)
@@ -231,7 +231,7 @@ SLASH_SPEEDYGONZALES1 = "/speedy"
 SlashCmdList["SPEEDYGONZALES"] = function(msg)
 	msg = msg:trim()
 	if msg:lower() == "config" then
-		InterfaceOptionsFrame_OpenToCategory(optionsFrame)
+		Settings.OpenToCategory(category:GetID())
 	elseif msg == "" then
 		db.shown = not db.shown
 		optionsFrame.options[1]:SetChecked(db.shown)
@@ -269,15 +269,15 @@ end
 function addon:ADDON_LOADED(addon)
 	if addon ~= "SpeedyGonzales" then return end
 	self:UnregisterEvent("ADDON_LOADED")
-	
+
 	-- create options defaults if they do not exist
 	SpeedyGonzalesDB = copyDefaults(defaults, SpeedyGonzalesDB)
 	db = SpeedyGonzalesDB
-	
+
 	for i, button in ipairs(optionsFrame.options) do
 		button:SetChecked(db[button.setting])
 	end
-	
+
 	self:SetUnit(db.units)
 	self:SetPosition()
 	self:FixWidth()
