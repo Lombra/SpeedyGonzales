@@ -253,12 +253,25 @@ local defaults = {
 	}
 }
 
+local function copyDefaults(src, dst)
+	if not src then return {} end
+	if not dst then dst = {} end
+	for k, v in pairs(src) do
+		if type(v) == "table" then
+			dst[k] = copyDefaults(v, dst[k])
+		elseif type(v) ~= type(dst[k]) then
+			dst[k] = v
+		end
+	end
+	return dst
+end
+
 function addon:ADDON_LOADED(addon)
 	if addon ~= "SpeedyGonzales" then return end
 	self:UnregisterEvent("ADDON_LOADED")
 	
 	-- create options defaults if they do not exist
-	SpeedyGonzalesDB = SpeedyGonzalesDB or defaults
+	SpeedyGonzalesDB = copyDefaults(defaults, SpeedyGonzalesDB)
 	db = SpeedyGonzalesDB
 	
 	for i, button in ipairs(optionsFrame.options) do
