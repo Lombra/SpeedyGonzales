@@ -2,6 +2,7 @@
 ## Title: SpeedyGonzales
 ## Version: @project-version@
 ## Notes: Displays your current movement speed.
+## IconTexture:
 ## Author: Lombra
 ## X-Curse-Project-ID: 16446
 ## X-WoWI-ID: 11186
