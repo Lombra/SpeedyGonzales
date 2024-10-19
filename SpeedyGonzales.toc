@@ -7,7 +7,7 @@
 ## X-Curse-Project-ID: 16446
 ## X-WoWI-ID: 11186
 
-## SavedVariablesPerCharacter: SpeedyGonzalesDB
+## SavedVariables: SpeedyGonzalesDB
 
 Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
