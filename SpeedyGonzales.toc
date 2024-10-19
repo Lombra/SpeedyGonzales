@@ -1,4 +1,4 @@
-## Interface: 110000
+## Interface: 110002
 ## Title: SpeedyGonzales
 ## Version: @project-version@
 ## Notes: Displays your current movement speed.
@@ -13,4 +13,5 @@ Libs\LibStub\LibStub.lua
 Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
 Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
 
+Settings.lua
 SpeedyGonzales.lua

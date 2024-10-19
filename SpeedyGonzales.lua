@@ -1,3 +1,5 @@
+local _, Speedy = ...
+
 local floor = math.floor
 local GetUnitSpeed = GetUnitSpeed
 local IsFlying = IsFlying
@@ -6,43 +8,48 @@ local IsFalling = IsFalling
 
 local BASE_WIDTH = 80
 
-local db, unit
+local db, selectedUnit
 local speeder = "player"
 
 -- data for the various unit displays
 local unitData = {
-	percent = "%",
-	yards = " yd/s",
-	miles = " mph",
-	kilometers = " km/h",
-	meters = " m/s",
-}
-
-local unitWidth = {
-	percent = -16,
-	kilometers = 8,
-}
-
-local unitTransformations = {
-	percent = function(n)
-		return floor(n / 7 * 100 + 0.1)
-	end,
-	yards = function(n)
-		return floor(n * 10 + 0.01) / 10
-	end,
-	miles = function(n)
-		return floor(n / 1.76 * 36 + 0.01) / 10
-	end,
-	kilometers = function(n)
-		return floor(n * 9.144 * 3.6 + 0.01) / 10
-	end,
-	meters = function(n)
-		return floor(n * 9.144 + 0.01) / 10
-	end,
+	{
+		key = "percent",
+		label = "Percent",
+		tooltip = "100% refers to on foot base running speed.",
+		func = function(n) return floor(n / 7 * 100 + 0.1) end,
+		display = "%",
+		extraWidth = -16,
+	},
+	{
+		key = "kilometers",
+		label = "Kilometers per hour",
+		func = function(n) return floor(n * 9.144 * 3.6 + 0.01) / 10 end,
+		display = " km/h",
+		extraWidth = 8,
+	},
+	{
+		key = "miles",
+		label = "Miles per hour",
+		func = function(n) return floor(n / 1.76 * 36 + 0.01) / 10 end,
+		display = " mph",
+	},
+	{
+		key = "meters",
+		label = "Meters per second",
+		func = function(n) return floor(n * 9.144 + 0.01) / 10 end,
+		display = " m/s",
+	},
+	{
+		key = "yards",
+		label = "Yards per second",
+		func = function(n) return floor(n * 10 + 0.01) / 10 end,
+		display = " yd/s",
+	},
 }
 
 local function transform(speed)
-	return unitTransformations[db.units](speed)
+	return selectedUnit.func(speed)
 end
 
 local dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(..., {
@@ -70,6 +77,7 @@ local addon = CreateFrame("Frame", "SpeedyGonzalesFrame", UIParent, "BackdropTem
 addon:SetHeight(32)
 addon:SetMovable(true)
 addon:SetToplevel(true)
+addon:SetDontSavePosition(true)
 addon:SetBackdrop({
 	bgFile = [[Interface\ChatFrame\ChatFrameBackground]],
 	edgeFile = [[Interface\Tooltips\UI-Tooltip-Border]],
@@ -91,6 +99,7 @@ addon:SetScript("OnHide", function(self) self:OnMouseUp() end)
 
 do
 	local frame = CreateFrame("Frame")
+	frame:Hide()
 	frame:SetScript("OnUpdate", function(self)
 		local speed
 		if db.showTopSpeed then
@@ -120,9 +129,10 @@ do
 			local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
 			speed = transform(isGliding and forwardSpeed or GetUnitSpeed(speeder))
 		end
-		addon.text:SetFormattedText("%d%s", speed, unit)
-		dataobj.text = format("%d%s", speed, unit)
+		addon.text:SetFormattedText("%d%s", speed, selectedUnit.display)
+		dataobj.text = format("%d%s", speed, selectedUnit.display)
 	end)
+	addon.updateFrame = frame
 end
 
 -- create font string for the actual speed text
@@ -131,111 +141,57 @@ addon.text:SetPoint("CENTER", addon)
 addon.text:SetFontObject("GameFontHighlight")
 addon.text:SetSpacing(2)
 
-local optionsFrame = CreateFrame("Frame")
-local category = Settings.RegisterCanvasLayoutCategory(optionsFrame, "SpeedyGonzales")
-Settings.RegisterAddOnCategory(category)
+local category = Speedy.RegisterCategory("SpeedyGonzales")
 
-local title = optionsFrame:CreateFontString(nil, nil, "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", 16, -16)
-title:SetPoint("RIGHT", -16, 0)
-title:SetJustifyH("LEFT")
-title:SetJustifyV("TOP")
-title:SetText(category.name)
-optionsFrame.title = title
-
-local function onClick(self)
-	local checked = self:GetChecked()
-	PlaySound(checked and SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON or SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_OFF)
-	db[self.setting] = checked
-	if self.func then
-		addon[self.func](addon)
-	end
-end
-
--- check buttons data
 local options = {
 	{
-		text = "Show",
-		setting = "shown",
-		func = "SetVisibility",
+		key = "shown",
+		type = Settings.VarType.Boolean,
+		defaultValue = true,
+		label = "Show",
+		tooltip = "Enables the standalone display.",
+		onChange = function() addon:SetVisibility() end,
 	},
 	{
-		text = "Lock",
-		setting = "locked",
-		func = "SetLock",
+		key = "locked",
+		type = Settings.VarType.Boolean,
+		defaultValue = false,
+		label = "Lock",
+		tooltip = "Locks the standalone display, enabling clicking through it and preventing moving it.",
+		onChange = function() addon:SetLock() end,
 	},
 	{
-		text = "Show top speed",
-		setting = "showTopSpeed",
+		key = "showTopSpeed",
+		type = Settings.VarType.Boolean,
+		defaultValue = false,
+		label = "Show top speed",
+		tooltip = "Shows the maximum possible speed in the current vehicle instead of the current speed. May display incorrect values while skyriding.",
+	},
+	{
+		key = "units",
+		type = Settings.VarType.String,
+		defaultValue = "percent",
+		label = "Units",
+		tooltip = "Selects the unit by which to represent speed.",
+		options = function()
+			local container = Settings.CreateControlTextContainer()
+			for i, option in ipairs(unitData) do
+				container:Add(option.key, option.label, option.tooltip)
+			end
+			return container:GetData()
+		end,
+		onChange = function(setting, value) addon:SetUnit(value) end,
 	},
 }
-
-optionsFrame.options = {}
-
-for i, v in ipairs(options) do
-	local button = CreateFrame("CheckButton", nil, optionsFrame, "OptionsBaseCheckButtonTemplate")
-	button:SetPushedTextOffset(0, 0)
-	button:SetScript("OnClick", onClick)
-	if i == 1 then
-		button:SetPoint("TOPLEFT", optionsFrame.title, "BOTTOMLEFT", -2, -16)
-	else
-		button:SetPoint("TOP", optionsFrame.options[i - 1], "BOTTOM", 0, -8)
-	end
-	button.text = button:CreateFontString(nil, nil, "GameFontHighlight")
-	button.text:SetPoint("LEFT", button, "RIGHT", 0, 1)
-	button.text:SetText(v.text)
-	button.func = v.func
-	button.setting = v.setting
-	optionsFrame.options[i] = button
-end
-
-local values = {
-	"percent",
-	"yards",
-	"miles",
-	"kilometers",
-	"meters",
-}
-
-local unitNames = {
-	percent = "Percent",
-	yards = "Yards per second",
-	miles = "Miles per hour",
-	kilometers = "Kilometers per hour",
-	meters = "Meters per second",
-}
-
-local function onClick(self, unit)
-	addon:SetUnit(unit)
-end
-
-local dropdown = CreateFrame("Frame", "SpeedyGonzalesUnitsMenu", optionsFrame, "UIDropDownMenuTemplate")
-dropdown:SetPoint("TOPLEFT", optionsFrame.options[#options], "BOTTOMLEFT", -13, -24)
-dropdown.label = dropdown:CreateFontString(nil, "BACKGROUND", "GameFontNormalSmall")
-dropdown.label:SetPoint("BOTTOMLEFT", dropdown, "TOPLEFT", 16, 3)
-dropdown.label:SetText("Units")
-dropdown.initialize = function(self)
-	for i, v in ipairs(values) do
-		local info = UIDropDownMenu_CreateInfo()
-		info.text = unitNames[v]
-		info.func = onClick
-		info.arg1 = v
-		info.checked = (v == db.units)
-		UIDropDownMenu_AddButton(info)
-	end
-end
-UIDropDownMenu_SetWidth(dropdown, 120)
 
 -- slash command opens options frame
 SLASH_SPEEDYGONZALES1 = "/speedy"
 SlashCmdList["SPEEDYGONZALES"] = function(msg)
 	msg = msg:trim()
 	if msg:lower() == "config" then
-		Settings.OpenToCategory(category:GetID())
+		category:Open()
 	elseif msg == "" then
-		db.shown = not db.shown
-		optionsFrame.options[1]:SetChecked(db.shown)
-		addon:SetVisibility()
+		category:SetValue("shown", not db.shown)
 	else
 		print("|cffffff00SpeedyGonzales:|r Type '/speedy' to toggle the frame or '/speedy config' to open the configuration.")
 	end
@@ -274,16 +230,13 @@ function addon:ADDON_LOADED(addon)
 	SpeedyGonzalesDB = copyDefaults(defaults, SpeedyGonzalesDB)
 	db = SpeedyGonzalesDB
 
-	for i, button in ipairs(optionsFrame.options) do
-		button:SetChecked(db[button.setting])
-	end
+	category:SetTable(db)
+	category:RegisterSettings(options)
+	category:NotifyUpdate()
 
-	self:SetUnit(db.units)
 	self:SetPosition()
-	self:FixWidth()
-	for k, v in pairs(options) do
-		if v.func then self[v.func](self) end
-	end
+
+	self.updateFrame:Show()
 end
 
 function addon:PLAYER_ENTERING_WORLD()
@@ -300,20 +253,20 @@ function addon:UNIT_EXITED_VEHICLE()
 	speeder = "player"
 end
 
-function addon:SetUnit(selectedUnit)
-	UIDropDownMenu_SetText(dropdown, unitNames[selectedUnit])
-	db.units = selectedUnit
-	unit = unitData[selectedUnit]
+function addon:SetUnit(unit)
+	selectedUnit = assert(FindValueInTableIf(unitData, function(e) return e.key == unit end), format("Invalid unit '%s'.", unit))
 	self:FixWidth()
 end
 
 function addon:OnMouseUp()
 	self:StopMovingOrSizing()
 	local point, _, _, xOff, yOff = self:GetPoint()
-	local pos = db.pos
-	pos.point = point
-	pos.xOff = xOff
-	pos.yOff = yOff
+	if point then
+		local pos = db.pos
+		pos.point = point
+		pos.xOff = xOff
+		pos.yOff = yOff
+	end
 end
 
 function addon:SetPosition()
@@ -331,5 +284,5 @@ end
 
 -- set width depending on displayed unit type
 function addon:FixWidth()
-	self:SetWidth(BASE_WIDTH + (unitWidth[db.units] or 0))
+	self:SetWidth(BASE_WIDTH + (selectedUnit.extraWidth or 0))
 end
