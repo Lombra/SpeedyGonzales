@@ -84,4 +84,9 @@ function CategoryMixin:NotifyUpdate()
 	end
 end
 
+local function AddSettingControlType(name, func)
+	settingControls[name] = func
+end
+
 Speedy.RegisterCategory = RegisterCategory
+Speedy.AddSettingControlType = AddSettingControlType

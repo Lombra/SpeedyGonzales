@@ -84,8 +84,6 @@ addon:SetBackdrop({
 	edgeSize = 14,
 	insets = {left = 3, right = 3, top = 3, bottom = 3}
 })
-addon:SetBackdropColor(0, 0, 0, 0.8)
-addon:SetBackdropBorderColor(0.3, 0.3, 0.3)
 addon:RegisterEvent("ADDON_LOADED")
 addon:RegisterEvent("PLAYER_ENTERING_WORLD")
 addon:RegisterUnitEvent("UNIT_ENTERED_VEHICLE", "player")
@@ -143,11 +141,35 @@ addon.text:SetSpacing(2)
 
 local category = Speedy.RegisterCategory("SpeedyGonzales")
 
+local defaults = {
+	units = "percent",
+	shown = true,
+	locked = false,
+	showTopSpeed = false,
+	pos = {
+		point = "CENTER",
+		xOff = 0,
+		yOff = -100
+	},
+	backdropColor = {
+		r = 0,
+		g = 0,
+		b = 0,
+		a = 0.8,
+	},
+	borderColor = {
+		r = 0.3,
+		g = 0.3,
+		b = 0.3,
+		a = 1.0,
+	},
+}
+
 local options = {
 	{
 		key = "shown",
 		type = Settings.VarType.Boolean,
-		defaultValue = true,
+		defaultValue = defaults.shown,
 		label = "Show",
 		tooltip = "Enables the standalone display.",
 		onChange = function() addon:SetVisibility() end,
@@ -155,7 +177,7 @@ local options = {
 	{
 		key = "locked",
 		type = Settings.VarType.Boolean,
-		defaultValue = false,
+		defaultValue = defaults.locked,
 		label = "Lock",
 		tooltip = "Locks the standalone display, enabling clicking through it and preventing moving it.",
 		onChange = function() addon:SetLock() end,
@@ -163,14 +185,14 @@ local options = {
 	{
 		key = "showTopSpeed",
 		type = Settings.VarType.Boolean,
-		defaultValue = false,
+		defaultValue = defaults.showTopSpeed,
 		label = "Show top speed",
 		tooltip = "Shows the maximum possible speed in the current vehicle instead of the current speed. May display incorrect values while skyriding.",
 	},
 	{
 		key = "units",
 		type = Settings.VarType.String,
-		defaultValue = "percent",
+		defaultValue = defaults.units,
 		label = "Units",
 		tooltip = "Selects the unit by which to represent speed.",
 		options = function()
@@ -181,6 +203,22 @@ local options = {
 			return container:GetData()
 		end,
 		onChange = function(setting, value) addon:SetUnit(value) end,
+	},
+	{
+		key = "backdropColor",
+		type = "color",
+		defaultValue = defaults.backdropColor,
+		label = "Background color",
+		tooltip = "Sets the background color of the standalone display.",
+		onChange = function(setting, value) addon:SetBackgroundColor(value) end,
+	},
+	{
+		key = "borderColor",
+		type = "color",
+		defaultValue = defaults.borderColor,
+		label = "Border color",
+		tooltip = "Sets the border color of the standalone display.",
+		onChange = function(setting, value) addon:SetBorderColor(value) end,
 	},
 }
 
@@ -196,18 +234,6 @@ SlashCmdList["SPEEDYGONZALES"] = function(msg)
 		print("|cffffff00SpeedyGonzales:|r Type '/speedy' to toggle the frame or '/speedy config' to open the configuration.")
 	end
 end
-
-local defaults = {
-	units = "percent",
-	shown = true,
-	locked = false,
-	showTopSpeed = false,
-	pos = {
-		point = "CENTER",
-		xOff = 0,
-		yOff = -100
-	}
-}
 
 local function copyDefaults(src, dst)
 	if not src then return {} end
@@ -285,4 +311,12 @@ end
 -- set width depending on displayed unit type
 function addon:FixWidth()
 	self:SetWidth(BASE_WIDTH + (selectedUnit.extraWidth or 0))
+end
+
+function addon:SetBackgroundColor(color)
+	self:SetBackdropColor(color.r, color.g, color.b, color.a)
+end
+
+function addon:SetBorderColor(color)
+	self:SetBackdropBorderColor(color.r, color.g, color.b, color.a)
 end
