@@ -25,7 +25,7 @@ local unitData = {
 	{
 		key = "kilometers",
 		label = "Kilometers per hour",
-		func = function(n) return floor(n * 9.144 * 3.6 + 0.01) / 10 end,
+		func = function(n) return floor(n * 10 * 3.6 + 0.01) / 10 end,
 		display = " km/h",
 		extraWidth = 8,
 	},
@@ -38,7 +38,7 @@ local unitData = {
 	{
 		key = "meters",
 		label = "Meters per second",
-		func = function(n) return floor(n * 9.144 + 0.01) / 10 end,
+		func = function(n) return floor(n * 10 + 0.01) / 10 end,
 		display = " m/s",
 	},
 	{
@@ -202,7 +202,7 @@ local options = {
 		type = Settings.VarType.String,
 		defaultValue = defaults.units,
 		label = "Units",
-		tooltip = "Selects the unit by which to represent speed.",
+		tooltip = "Selects the unit by which to represent speed. Meters and yards are treated as the same unit.",
 		options = function()
 			local container = Settings.CreateControlTextContainer()
 			for i, option in ipairs(unitData) do
