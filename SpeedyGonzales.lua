@@ -2,6 +2,7 @@ local _, Speedy = ...
 
 local floor = math.floor
 local GetUnitSpeed = GetUnitSpeed
+local GetGlidingInfo = C_PlayerInfo.GetGlidingInfo
 local IsFlying = IsFlying
 local IsSwimming = IsSwimming
 local IsFalling = IsFalling
@@ -124,7 +125,7 @@ do
 
 			speed = transform(speed)
 		else
-			local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
+			local isGliding, canGlide, forwardSpeed = GetGlidingInfo()
 			speed = transform(isGliding and forwardSpeed or GetUnitSpeed(speeder))
 		end
 		addon.text:SetFormattedText("%d%s", speed, selectedUnit.display)
@@ -143,7 +144,7 @@ local category = Speedy.RegisterCategory("SpeedyGonzales")
 
 local defaults = {
 	units = "percent",
-	shown = true,
+	show = "always",
 	locked = false,
 	showTopSpeed = false,
 	pos = {
@@ -167,11 +168,18 @@ local defaults = {
 
 local options = {
 	{
-		key = "shown",
-		type = Settings.VarType.Boolean,
-		defaultValue = defaults.shown,
+		key = "show",
+		type = Settings.VarType.String,
+		defaultValue = defaults.show,
 		label = "Show",
-		tooltip = "Enables the standalone display.",
+		tooltip = "Determines when to show the standalone display.",
+		options = {
+			{ key = "always",   label = "Always" },
+			{ key = "mounted",  label = "While mounted", tooltip = "While mounted on any mount." },
+			{ key = "canGlide", label = "While mounted (skyriding)", tooltip = "While mounted on a skyriding mount in a skyriding enabled area." },
+			{ key = "gliding",  label = "While skyriding", tooltip = "While flying on a skyriding mount." },
+			{ key = "never",    label = "Never" },
+		},
 		onChange = function() addon:SetVisibility() end,
 	},
 	{
@@ -180,7 +188,7 @@ local options = {
 		defaultValue = defaults.locked,
 		label = "Lock",
 		tooltip = "Locks the standalone display, enabling clicking through it and preventing moving it.",
-		onChange = function() addon:SetLock() end,
+		onChange = function(setting, value) addon:SetLock(value) end,
 	},
 	{
 		key = "showTopSpeed",
@@ -225,14 +233,7 @@ local options = {
 -- slash command opens options frame
 SLASH_SPEEDYGONZALES1 = "/speedy"
 SlashCmdList["SPEEDYGONZALES"] = function(msg)
-	msg = msg:trim()
-	if msg:lower() == "config" then
-		category:Open()
-	elseif msg == "" then
-		category:SetValue("shown", not db.shown)
-	else
-		print("|cffffff00SpeedyGonzales:|r Type '/speedy' to toggle the frame or '/speedy config' to open the configuration.")
-	end
+	category:Open()
 end
 
 local function copyDefaults(src, dst)
@@ -263,12 +264,21 @@ function addon:ADDON_LOADED(addon)
 	self:SetPosition()
 
 	self.updateFrame:Show()
+
+	self:RegisterEvent("PLAYER_MOUNT_DISPLAY_CHANGED")
+	self:RegisterEvent("PLAYER_CAN_GLIDE_CHANGED")
+	self:RegisterEvent("PLAYER_IS_GLIDING_CHANGED")
+
+	self.PLAYER_MOUNT_DISPLAY_CHANGED = self.SetVisibility
+	self.PLAYER_CAN_GLIDE_CHANGED = self.SetVisibility
+	self.PLAYER_IS_GLIDING_CHANGED = self.SetVisibility
 end
 
 function addon:PLAYER_ENTERING_WORLD()
 	if UnitInVehicle("player") then
 		speeder = "vehicle"
 	end
+	self:SetVisibility()
 end
 
 function addon:UNIT_ENTERED_VEHICLE()
@@ -301,11 +311,26 @@ function addon:SetPosition()
 end
 
 function addon:SetVisibility()
-	self:SetShown(db.shown)
+	local show = false
+	if db.show == "never" then
+		show = false
+	elseif db.show == "always" then
+		show = true
+	elseif db.show == "mounted" then
+		show = IsMounted() and not UnitOnTaxi("player")
+	else
+		local isGliding, canGlide, forwardSpeed = GetGlidingInfo()
+		if db.show == "canGlide" then
+			show = canGlide
+		elseif db.show == "gliding" then
+			show = isGliding
+		end
+	end
+	self:SetShown(show)
 end
 
-function addon:SetLock()
-	self:EnableMouse(not db.locked)
+function addon:SetLock(isLocked)
+	self:EnableMouse(not isLocked)
 end
 
 -- set width depending on displayed unit type

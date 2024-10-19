@@ -3,8 +3,7 @@
 Displays your current or maximum movement speed in a small standalone frame or via a LibDataBroker feed.
 
 ### **Usage**
-- /speedy - Toggles the frame
-- /speedy config - Opens configuration window
+- /speedy - Opens configuration window
 
 Absolute units are based on the following assumptions:
 

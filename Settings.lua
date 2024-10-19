@@ -14,7 +14,7 @@ local settingControls = {
 				function options()
 					local container = Settings.CreateControlTextContainer()
 					for i, option in ipairs(info.options) do
-						container:Add(option.key, option.label)
+						container:Add(option.key, option.label, option.tooltip)
 					end
 					return container:GetData()
 				end
