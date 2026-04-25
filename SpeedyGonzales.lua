@@ -60,6 +60,7 @@ local dataobj = LibStub("LibDataBroker-1.1"):NewDataObject(..., {
 	label = "Speed",
 	OnTooltipShow = function(self)
 		local _, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed("player")
+		if issecretvalue(runSpeed) then return end
 		local speed = runSpeed
 		if IsSwimming() then
 			speed = swimSpeed
@@ -100,11 +101,17 @@ do
 	local frame = CreateFrame("Frame")
 	frame:Hide()
 	frame:SetScript("OnUpdate", function(self)
-		local speed
+		local speed, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed(speeder)
+
+		if issecretvalue(speed) then
+			addon.text:SetText("-")
+			dataobj.text = "-"
+			return
+		end
+
 		if db.showTopSpeed then
 			local flying = IsFlying()
 			local swimming = IsSwimming()
-			local _, runSpeed, flightSpeed, swimSpeed = GetUnitSpeed(speeder)
 
 			-- Determine whether to display running, flying, or swimming speed
 			speed = runSpeed
